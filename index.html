@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#3182ce">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="康复评估">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="description" content="康复治疗师评估记录系统 - 患者管理/评估/量表/康复方案/拍照记录">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<title>康复评估系统</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;background:#f0f2f5;color:#333;line-height:1.5;font-size:14px}
+:root{--primary:#3182ce;--primary-dark:#2c5282;--bg:#f0f2f5;--card:#fff;--radius:8px}
+button{font-family:inherit;cursor:pointer;border:none;outline:none}
+input,select,textarea{font-family:inherit;font-size:14px;outline:none}
+a{text-decoration:none;color:inherit}
+
+/* app container */
+#app{max-width:480px;margin:0 auto;min-height:100vh;padding-bottom:calc(72px + env(safe-area-inset-bottom));background:var(--bg)}
+.page{padding:12px;animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* header */
+.page-header{background:linear-gradient(135deg,#3182ce,#2c5282);color:#fff;padding:16px 14px;border-radius:var(--radius);margin-bottom:12px}
+.page-header h2{font-size:18px;font-weight:600}
+.page-header p{font-size:12px;opacity:.9;margin-top:2px}
+
+/* card */
+.card{background:var(--card);border-radius:var(--radius);padding:14px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.card-title{font-size:15px;font-weight:600;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+.card-title .more{font-size:12px;color:var(--primary);font-weight:400}
+
+/* stat grid */
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat-box{background:var(--card);border-radius:var(--radius);padding:14px 8px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.stat-box .num{font-size:22px;font-weight:700;color:var(--primary)}
+.stat-box .lbl{font-size:12px;color:#888;margin-top:2px}
+
+/* grid menu */
+.type-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.type-item{background:var(--card);border-radius:var(--radius);padding:14px 6px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.06);transition:.2s}
+.type-item:active{transform:scale(.96)}
+.type-item .icon{font-size:24px}
+.type-item .name{font-size:12px;margin-top:4px;color:#555}
+
+/* patient card */
+.patient-card{background:var(--card);border-radius:var(--radius);padding:12px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.06);display:flex;align-items:center;gap:12px}
+.avatar{width:44px;height:44px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:600;flex-shrink:0}
+.patient-info{flex:1;min-width:0}
+.patient-info .pn{font-weight:600;font-size:15px}
+.patient-info .pm{font-size:12px;color:#888;margin-top:2px}
+.patient-info .pm span{margin-right:8px}
+.row-actions{display:flex;gap:6px}
+.btn-mini{padding:4px 10px;border-radius:6px;font-size:12px;background:#edf2f7;color:var(--primary)}
+.btn-mini.danger{color:#e53e3e;background:#fed7d7}
+
+/* record card */
+.record-card{background:var(--card);border-radius:var(--radius);padding:10px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.06);display:flex;gap:10px}
+.record-thumb{width:72px;height:72px;border-radius:6px;object-fit:cover;background:#edf2f7;flex-shrink:0}
+.record-info{flex:1;min-width:0}
+.record-info .rn{font-weight:600;font-size:13px;color:var(--primary)}
+.record-info .rm{font-size:12px;color:#666;margin-top:3px}
+.record-info .rt{font-size:11px;color:#aaa;margin-top:4px}
+
+/* form */
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:13px;color:#555;margin-bottom:6px}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:10px 12px;border:1px solid #e2e8f0;border-radius:6px;background:#fff;font-size:14px}
+.form-group textarea{resize:vertical;min-height:70px}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--primary)}
+.gender-pick{display:flex;gap:10px}
+.gender-pick label{flex:1;text-align:center;padding:10px;border:1px solid #e2e8f0;border-radius:6px;cursor:pointer;margin:0}
+.gender-pick input{display:none}
+.gender-pick input:checked+span{color:var(--primary);font-weight:600}
+.gender-pick label:has(input:checked){border-color:var(--primary);background:#ebf8ff}
+
+/* buttons */
+.btn{display:block;width:100%;padding:12px;background:var(--primary);color:#fff;border-radius:6px;font-size:15px;font-weight:600;text-align:center}
+.btn:active{opacity:.85}
+.btn-ghost{background:#fff;color:var(--primary);border:1px solid var(--primary)}
+.btn-danger{background:#e53e3e}
+.btn-block{display:block;width:100%;padding:11px;text-align:center;border-radius:6px;font-size:14px;font-weight:600}
+
+/* tab bar */
+#tabbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:#fff;display:flex;height:calc(60px + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -1px 6px rgba(0,0,0,.08);z-index:100}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;color:#888;position:relative;cursor:pointer}
+.tab .ic{font-size:20px;margin-bottom:2px}
+.tab.on{color:var(--primary)}
+.tab-camera{flex:1;display:flex;align-items:flex-start;justify-content:center}
+.cam-btn{width:54px;height:54px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:26px;margin-top:-22px;box-shadow:0 4px 10px rgba(49,130,206,.5);border:3px solid #fff}
+.cam-btn:active{transform:scale(.94)}
+
+/* modal */
+.modal-mask{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal{background:#fff;border-radius:12px;width:100%;max-width:400px;max-height:85vh;overflow-y:auto}
+.modal-hd{padding:16px;font-size:16px;font-weight:600;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center}
+.modal-hd .close{font-size:22px;color:#aaa;cursor:pointer;line-height:1}
+.modal-bd{padding:16px}
+.modal-ft{padding:12px 16px;border-top:1px solid #eee;display:flex;gap:10px}
+.modal-ft .btn{flex:1}
+
+/* toast */
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.8);color:#fff;padding:10px 18px;border-radius:6px;font-size:13px;z-index:300;animation:tin .25s}
+@keyframes tin{from{opacity:0;transform:translate(-50%,-10px)}to{opacity:1;transform:translate(-50%,0)}}
+
+/* empty */
+.empty{text-align:center;padding:40px 20px;color:#aaa}
+.empty .ei{font-size:40px;margin-bottom:8px}
+
+/* photo preview */
+.photo-preview{width:100%;border-radius:var(--radius);display:block;margin-bottom:12px;background:#edf2f7}
+
+/* detail */
+.detail-photo{width:100%;border-radius:var(--radius);display:block;margin-bottom:12px}
+.info-row{display:flex;padding:9px 0;border-bottom:1px solid #f0f0f0;font-size:14px}
+.info-row .k{width:90px;color:#888;flex-shrink:0}
+.info-row .v{flex:1;font-weight:500;word-break:break-all}
+
+/* bar chart */
+.bar-chart{display:flex;align-items:flex-end;gap:4px;height:120px;padding:8px 0;border-bottom:1px solid #eee;margin:10px 0}
+.bar-col{flex:1;background:var(--primary);border-radius:3px 3px 0 0;min-height:2px;position:relative;transition:height .4s}
+.bar-col .lab{position:absolute;bottom:-20px;left:0;right:0;text-align:center;font-size:10px;color:#888}
+.bar-col .val{position:absolute;top:-16px;left:0;right:0;text-align:center;font-size:10px;color:var(--primary);font-weight:600}
+.bar-wrap{margin-top:24px}
+.hbar{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:13px}
+.hbar .nl{width:60px;flex-shrink:0;color:#555}
+.hbar .track{flex:1;height:18px;background:#edf2f7;border-radius:4px;overflow:hidden}
+.hbar .fill{height:100%;background:var(--primary);border-radius:4px;transition:width .5s}
+.hbar .nm{width:32px;text-align:right;color:#888;flex-shrink:0}
+
+.filter-row{display:flex;gap:8px;align-items:flex-end;margin-bottom:12px}
+.filter-row .form-group{flex:1;margin-bottom:0}
+.date-input{padding:8px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;width:100%}
+
+.qr-canvas{display:block;margin:10px auto;background:#fff}
+.cert-card{border:2px solid var(--primary);border-radius:10px;padding:16px;text-align:center}
+.cert-card h3{color:var(--primary);margin-bottom:8px}
+.cert-info{text-align:left;font-size:13px;margin:10px 0}
+.cert-info .ir{padding:5px 0;border-bottom:1px dashed #e2e8f0}
+.cert-info .ir .k{color:#888;display:inline-block;width:80px}
+.onboard-welcome{text-align:center;padding:10px 0}
+.onboard-welcome .logo{font-size:48px;margin-bottom:8px}
+.list-link{display:block;padding:10px;background:#fff;border-radius:6px;margin-bottom:8px;font-size:13px;box-shadow:0 1px 2px rgba(0,0,0,.04);display:flex;justify-content:space-between;align-items:center}
+.link-arrow{color:#aaa}
+
+/* ==================== New module styles ==================== */
+/* search box */
+.search-box{position:relative;margin-bottom:12px}
+.search-box input{width:100%;padding:10px 12px 10px 34px;border:1px solid #e2e8f0;border-radius:20px;background:#fff;font-size:14px}
+.search-box .ic{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#aaa;font-size:14px}
+
+/* patient detail header */
+.patient-detail-hd{background:linear-gradient(135deg,#3182ce,#2c5282);color:#fff;padding:16px;border-radius:var(--radius);margin-bottom:12px}
+.patient-detail-hd .pname{font-size:20px;font-weight:700}
+.patient-detail-hd .pmeta{font-size:12px;opacity:.9;margin-top:4px}
+.patient-detail-hd .pmeta span{margin-right:10px}
+.patient-detail-hd .pid{font-size:11px;opacity:.8;margin-top:6px;font-family:monospace}
+
+/* function entry grid (6 cards) */
+.func-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
+.func-item{background:#fff;border-radius:var(--radius);padding:14px 6px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.06);cursor:pointer;transition:.2s}
+.func-item:active{transform:scale(.96)}
+.func-item .fic{font-size:26px}
+.func-item .fname{font-size:12px;margin-top:4px;color:#555}
+
+/* section card with collapsible */
+.section-card{background:#fff;border-radius:var(--radius);margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.06);overflow:hidden}
+.section-card .sc-hd{padding:12px 14px;background:#f7fafc;font-weight:600;font-size:14px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;border-bottom:1px solid #eee}
+.section-card .sc-hd .arrow{transition:.2s;color:#aaa}
+.section-card.collapsed .arrow{transform:rotate(-90deg)}
+.section-card .sc-bd{padding:14px}
+.section-card.collapsed .sc-bd{display:none}
+
+/* sub-section */
+.sub-section{border:1px solid #edf2f7;border-radius:6px;padding:12px;margin-bottom:10px}
+.sub-section .ss-title{font-weight:600;font-size:13px;color:var(--primary);margin-bottom:8px}
+
+/* checkbox / radio pills */
+.pill-group{display:flex;flex-wrap:wrap;gap:6px}
+.pill{padding:6px 12px;border:1px solid #e2e8f0;border-radius:16px;font-size:12px;cursor:pointer;background:#fff;user-select:none}
+.pill.on{background:var(--primary);color:#fff;border-color:var(--primary)}
+.pill-radio{display:inline-flex;gap:0;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden}
+.pill-radio label{padding:6px 10px;font-size:12px;cursor:pointer;background:#fff}
+.pill-radio input{display:none}
+.pill-radio input:checked+span{color:#fff}
+.pill-radio label:has(input:checked){background:var(--primary);color:#fff}
+
+/* slider */
+.slider-row{display:flex;align-items:center;gap:10px}
+.slider-row input[type=range]{flex:1}
+.slider-row .sv{font-weight:700;color:var(--primary);min-width:30px;text-align:center}
+
+/* dynamic list item */
+.dyn-item{border:1px solid #edf2f7;border-radius:6px;padding:10px;margin-bottom:8px;background:#fafbfc}
+.dyn-item .di-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:12px;color:#888}
+.dyn-item .di-rm{color:#e53e3e;cursor:pointer;font-size:12px}
+
+/* joint rom table */
+.rom-row{display:grid;grid-template-columns:80px 1fr 1fr;gap:6px;margin-bottom:6px;font-size:12px}
+.rom-row .rom-cell{display:flex;flex-direction:column;gap:2px}
+.rom-row .rom-cell label{font-size:11px;color:#888}
+.rom-row .rom-cell input{padding:6px;font-size:12px;border:1px solid #e2e8f0;border-radius:4px}
+
+/* category group */
+.cat-group{margin-bottom:14px}
+.cat-group .cat-title{font-weight:600;font-size:13px;color:#444;margin-bottom:8px;padding-bottom:4px;border-bottom:2px solid var(--primary)}
+.exam-row{display:flex;align-items:center;gap:8px;padding:8px;border:1px solid #edf2f7;border-radius:6px;margin-bottom:6px;background:#fff;flex-wrap:wrap}
+.exam-row .ex-name{flex:1;min-width:120px;font-size:13px;font-weight:500}
+.exam-row .ex-result{display:flex;gap:0}
+.exam-row .ex-result label{padding:4px 8px;font-size:11px;border:1px solid #e2e8f0;cursor:pointer;background:#fff}
+.exam-row .ex-result label:first-child{border-radius:4px 0 0 4px}
+.exam-row .ex-result label:last-child{border-radius:0 4px 4px 0}
+.exam-row .ex-result input{display:none}
+.exam-row .ex-result input:checked+span{color:#fff}
+.exam-row .ex-result label:has(input:checked){background:var(--primary);color:#fff;border-color:var(--primary)}
+.exam-row .ex-result label.pos:has(input:checked){background:#e53e3e;border-color:#e53e3e}
+.exam-row .ex-result label.neg:has(input:checked){background:#38a169;border-color:#38a169}
+.exam-row .ex-note{width:100%;padding:5px 8px;font-size:11px;border:1px solid #e2e8f0;border-radius:4px;margin-top:4px}
+
+/* tag badges */
+.tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;background:#edf2f7;color:#555;margin:2px}
+.tag.pos{background:#fed7d7;color:#c53030}
+.tag.neg{background:#c6f6d5;color:#276749}
+.tag.warn{background:#feebc8;color:#c05621}
+.tag.ok{background:#bee3f8;color:#2c5282}
+
+/* scale card */
+.scale-card{border:1px solid #edf2f7;border-radius:8px;padding:12px;margin-bottom:10px;background:#fff}
+.scale-card .sc-name{font-weight:600;font-size:14px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}
+.scale-card .sc-score{font-size:18px;font-weight:700;color:var(--primary)}
+.scale-card .sc-conclusion{font-size:12px;color:#666;margin-top:4px;padding:6px;background:#f7fafc;border-radius:4px}
+/* 量表库参考 */
+.lib-info{font-size:12px;color:#555;background:#f7fafc;border-radius:6px;padding:8px 10px;margin-bottom:8px}
+.lib-info .li-row{margin:2px 0}
+.lib-cat{margin-bottom:6px;border:1px solid #edf2f7;border-radius:6px;overflow:hidden}
+.lib-cat-hd{background:#ebf8ff;padding:8px 10px;font-weight:600;font-size:13px;cursor:pointer;color:#2c5282;user-select:none}
+.lib-cat-bd{padding:4px 10px}
+.lib-item{border-bottom:1px solid #f0f0f0;padding:8px 0}
+.lib-item:last-child{border-bottom:none}
+.lib-item .li-name{font-weight:600;font-size:13px;color:#333;margin-bottom:3px}
+.lib-item .li-row{font-size:12px;color:#555;line-height:1.6}
+.lib-item .li-row b{color:#2c5282}
+
+/* plan stage */
+.plan-stage{border-left:3px solid var(--primary);padding-left:12px;margin-bottom:14px}
+.plan-stage.acute{border-color:#e53e3e}
+.plan-stage.subacute{border-color:#dd6b20}
+.plan-stage.chronic{border-color:#38a169}
+.plan-stage .ps-title{font-weight:600;font-size:14px;margin-bottom:6px}
+
+/* treatment item */
+.treat-item{background:#f7fafc;border-radius:6px;padding:8px 10px;margin-bottom:6px;font-size:12px}
+.treat-item .ti-name{font-weight:600;color:#333}
+.treat-item .ti-meta{color:#888;margin-top:2px}
+
+/* report */
+.report-page{background:#fff;border-radius:var(--radius);padding:18px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.report-section{margin-bottom:18px;page-break-inside:avoid}
+.report-section h3{font-size:15px;color:var(--primary);border-bottom:2px solid var(--primary);padding-bottom:6px;margin-bottom:10px}
+.report-section .r-row{display:flex;padding:6px 0;border-bottom:1px solid #f0f0f0;font-size:13px;align-items:flex-start}
+.report-section .r-row .rk{width:130px;color:#888;flex-shrink:0;line-height:1.6;padding-top:1px}
+.report-section .r-row .rv{flex:1;word-break:break-all;overflow-wrap:anywhere;line-height:1.6}
+.report-section .r-block{background:#f7fafc;padding:8px;border-radius:4px;margin-top:6px;font-size:12px;color:#555}
+.report-title{text-align:center;font-size:20px;font-weight:700;margin-bottom:6px}
+.report-sub{text-align:center;color:#888;font-size:12px;margin-bottom:16px}
+
+/* role badge */
+.role-badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;background:#fed7d7;color:#c53030}
+.role-badge.admin{background:#fed7d7;color:#c53030}
+.role-badge.director{background:#feebc8;color:#c05621}
+.role-badge.therapist{background:#bee3f8;color:#2c5282}
+
+/* tab bar 6 items (no camera) */
+#tabbar .tab{font-size:10px}
+
+/* filter chips */
+.chip-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.chip{padding:5px 12px;border:1px solid #e2e8f0;border-radius:14px;font-size:12px;cursor:pointer;background:#fff}
+.chip.on{background:var(--primary);color:#fff;border-color:var(--primary)}
+
+/* step nav */
+.step-nav{display:flex;background:#fff;border-radius:var(--radius);margin-bottom:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.step-nav .sn-item{flex:1;padding:10px 4px;text-align:center;font-size:11px;color:#888;cursor:pointer;border-bottom:2px solid transparent}
+.step-nav .sn-item.on{color:var(--primary);border-bottom-color:var(--primary);font-weight:600}
+
+/* patient selector */
+.patient-select-list{max-height:300px;overflow-y:auto}
+.patient-select-list .ps-item{padding:10px;border:1px solid #edf2f7;border-radius:6px;margin-bottom:6px;cursor:pointer}
+.patient-select-list .ps-item:active{background:#ebf8ff}
+
+/* alert */
+.alert{padding:8px 12px;border-radius:6px;font-size:12px;margin:6px 0}
+.alert.warn{background:#feebc8;color:#c05621}
+.alert.danger{background:#fed7d7;color:#c53030}
+.alert.info{background:#bee3f8;color:#2c5282}
+
+/* treatment item price & enhanced card */
+.ti-desc{margin-top:6px;font-size:12px;color:#2d3748;padding:6px 8px;background:#edf2f7;border-radius:4px;line-height:1.5}
+.ti-desc b{color:#2b6cb0}
+.treat-item{background:#f7fafc;border-radius:8px;padding:10px;margin-bottom:8px}
+.di-hd{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px}
+.ti-name{font-weight:600;font-size:14px}
+.ti-meta{font-size:12px;color:#666;margin-top:4px}
+.tag{display:inline-block;font-size:10px;padding:1px 6px;background:#ebf8ff;color:#3182ce;border-radius:3px;margin-left:4px;font-weight:400}
+
+/* price query table */
+.price-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:10px}
+.price-table th{background:#ebf8ff;color:#2c5282;padding:8px 6px;text-align:left;font-weight:600;border-bottom:2px solid #bee3f8}
+.price-table td{padding:8px 6px;border-bottom:1px solid #edf2f7;vertical-align:top}
+.price-table tr:hover td{background:#f7fafc}
+.price-table .p3{color:#e53e3e;font-weight:600}
+.price-table .cd{color:#666;font-size:11px}
+
+/* report summary table */
+.r-summary-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:10px}
+.r-summary-table th{background:#ebf8ff;color:#2c5282;padding:6px;text-align:center;font-weight:600;border:1px solid #bee3f8}
+.r-summary-table td{padding:6px;border:1px solid #e2e8f0;text-align:center}
+.r-summary-table .total-row td{background:#fff5f5;font-weight:600;color:#e53e3e}
+
+/* print styles */
+@media print{
+  #tabbar,.no-print{display:none !important}
+  #app{max-width:none;padding:0}
+  .report-page{font-size:12pt;box-shadow:none;border:none}
+  .report-section{page-break-inside:avoid}
+  body{background:#fff}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="tabbar"></div>
+<div id="pwa_install_banner" style="display:none;position:fixed;bottom:calc(72px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:90%;max-width:440px;background:#fff;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.15);padding:12px 16px;display:none;align-items:center;gap:10px;z-index:9999">
+  <div style="font-size:24px">📲</div>
+  <div style="flex:1"><div style="font-weight:600;font-size:14px">安装到手机桌面</div><div style="font-size:12px;color:#666">离线可用，像App一样打开</div></div>
+  <button id="pwa_install_btn" style="background:#3182ce;color:#fff;border:none;padding:8px 16px;border-radius:6px;font-size:13px;white-space:nowrap">安装</button>
+  <button id="pwa_install_close" style="background:none;border:none;font-size:18px;color:#999;padding:0 4px">×</button>
+</div>
+<script src="js/bootstrap.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/storage-sync.js"></script>
+<script src="js/schema.js"></script>
+<script src="js/data-model.js"></script>
+<script src="js/dirty-router.js"></script>
+<script src="js/route-handlers.js"></script>
+
+</body>
+</html>

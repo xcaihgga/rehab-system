@@ -1,0 +1,25 @@
+{
+  "name": "康复评估记录系统",
+  "short_name": "康复评估",
+  "description": "康复治疗师评估记录系统 - 患者管理/评估/量表/康复方案/拍照记录",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f0f2f5",
+  "theme_color": "#3182ce",
+  "lang": "zh-CN",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
