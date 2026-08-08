@@ -603,4 +603,194 @@ var PLAN_STAGES=[
 ];
 var TREAT_FREQ=['每日','隔日','每周2次','每周3次'];
 
+/* ========================= 示例患者模板 ========================= */
+/* 5 种常见康复场景：腰突、脑卒中、颈椎病、膝关节置换术后、肩周炎 */
+var PATIENT_TEMPLATES=[
+  {
+    key:'lumbar',
+    name:'腰椎间盘突出症',
+    desc:'腰痛伴右下肢放射痛 3 周，L4-5 椎间盘突出',
+    tag:'肌骨',
+    patient:{name:'示例·张先生',gender:'男',age:38,diagnosis:'腰椎间盘突出症(L4-5)',phone:'138****5678',address:'山东省东营市',note:'久坐职业，搬重物后急性发病'},
+    assessment:{
+      chiefComplaint:{symptoms:'腰痛伴右下肢放射痛',onset:'3周前',triggers:'搬重物',history:'腰椎MRI示L4-5椎间盘突出，压迫右侧神经根'},
+      palpation:{sites:['腰椎','骶髂关节'],painLevel:7,findings:'L4-5棘突及棘突旁压痛(+)，并向右下肢放射，直腿抬高试验右侧阳性(30°)'},
+      rom:[{joint:'腰椎',active:'前屈受限(30°) 后伸受限(10°)',passive:'前屈诱发下肢放射痛'},{joint:'右髋',active:'外展稍受限',passive:'40° 正常'},{joint:'右膝',active:'正常',passive:'正常'}],
+      muscle:[{group:'股四头肌',grade:4,note:'右侧股四头肌稍弱'},{group:'胫前肌',grade:4,note:'右侧胫前肌肌力减退'},{group:'小腿三头肌',grade:5,note:''}],
+      skinTemp:{left:'36.5',right:'36.3'},
+      adl:{items:{'穿衣':3,'进食':5,'如厕':3,'洗澡':2,'行走':2,'上下楼':1,'购物':1,'做饭':2,'洗衣':2,'服药':5}}
+    },
+    scales:[
+      {key:'VAS',name:'VAS疼痛评分',score:7,conclusion:'重度疼痛（7-10）',data:{value:7},date:Date.now()},
+      {key:'ODI',name:'ODI Oswestry功能障碍指数',score:58,conclusion:'重度功能障碍（40-60%）',data:{pain:8,care:6,lift:7,walk:7,sit:6,stand:6,sleep:7,social:5,travel:6},date:Date.now()}
+    ],
+    plan:{
+      acute:{goal:'急性期(0-2周) 缓解疼痛、消除炎症',items:['绝对卧床休息3-5天','口服消炎镇痛药','骨盆牵引 每日1次 每次20分钟','中频电疗 每日1次']},
+      subacute:{goal:'亚急性期(2-6周) 改善活动度、增强核心',items:['麦肯基疗法 每日2次','核心肌群训练(腹横肌/多裂肌)','腰椎稳定性训练','水中步行训练']},
+      chronic:{goal:'慢性期(6周+) 重返工作、防止复发',items:['渐进式抗阻训练','功能性训练(搬重物模拟)','健康教育(坐姿/搬物姿势)','工作环境评估与改造']}
+    }
+  },
+  {
+    key:'stroke',
+    name:'脑卒中偏瘫',
+    desc:'左侧基底节区脑梗死 2 个月，右侧肢体偏瘫',
+    tag:'神经',
+    patient:{name:'示例·李女士',gender:'女',age:62,diagnosis:'脑梗死(恢复期) 右侧偏瘫',phone:'139****1234',address:'山东省济南市',note:'高血压病史10年，2月前突发左侧基底节区梗死'},
+    assessment:{
+      chiefComplaint:{symptoms:'右侧肢体无力伴言语不清',onset:'2月前',triggers:'脑卒中',history:'高血压10年，糖尿病5年。头颅MRI：左侧基底节区梗死灶'},
+      palpation:{sites:['颈椎','肩关节','髋关节'],painLevel:2,findings:'四肢肌张力增高，右侧肢体明显，关节被动活动阻力增大'},
+      rom:[{joint:'右肩',active:'前屈30° 外展20° 内旋受限',passive:'被动活动尚可但有阻力'},{joint:'右肘',active:'屈肘90° 伸肘-10°',passive:'被动伸肘不足'},{joint:'右腕',active:'掌屈5° 背伸0°',passive:'被动活动受限'},{joint:'右髋',active:'屈髋40° 外展20°',passive:'被动活动阻力大'},{joint:'右膝',active:'伸膝-15°（屈曲挛缩）',passive:'被动伸膝受限'},{joint:'右踝',active:'背屈0° 跖屈20°',passive:'被动背屈受限'}],
+      muscle:[{group:'三角肌',grade:3,note:'右侧三角肌肌力减弱'},{group:'肱二头肌',grade:3,note:''},{group:'肱三头肌',grade:2,note:'右侧肱三头肌力量明显减弱'},{group:'腕屈肌',grade:2,note:''},{group:'腕伸肌',grade:1,note:'几乎无收缩'},{group:'髂腰肌',grade:3,note:''},{group:'股四头肌',grade:3,note:''},{group:'胫前肌',grade:2,note:'足背屈无力'},{group:'小腿三头肌',grade:3,note:''}],
+      skinTemp:{left:'36.6',right:'36.4'},
+      adl:{items:{'穿衣':2,'进食':3,'如厕':2,'洗澡':1,'行走':1,'上下楼':0,'购物':0,'做饭':0,'洗衣':0,'服药':4}}
+    },
+    scales:[
+      {key:'VAS',name:'VAS疼痛评分',score:2,conclusion:'轻度疼痛（0-3）',data:{value:2},date:Date.now()},
+      {key:'Barthel',name:'Barthel指数',score:35,conclusion:'中度依赖（21-40分）',data:{进食:5,洗澡:0,修饰:5,穿衣:5,大便控制:5,小便控制:5,如厕:5,床椅转移:5,平地行走:0,上下楼梯:0},date:Date.now()},
+      {key:'BrunnstromUE',name:'Brunnstrom上肢分期',score:3,conclusion:'第Ⅲ期：痉挛期，出现联合反应和共同运动',data:{stage:3},date:Date.now()},
+      {key:'BrunnstromLE',name:'Brunnstrom下肢分期',score:3,conclusion:'第Ⅲ期：痉挛期，出现联合反应和共同运动',data:{stage:3},date:Date.now()},
+      {key:'BBS',name:'Berg平衡量表',score:18,conclusion:'<40分 高跌倒风险',data:{score:18},date:Date.now()},
+      {key:'MMSE',name:'MMSE简易精神状态',score:24,conclusion:'正常(≥27为正常)',data:{orientation:9,memory:3,attention:4,recall:3,language:5},date:Date.now()}
+    ],
+    plan:{
+      acute:{goal:'急性期(0-2周) 维持关节活动度、预防并发症',items:['良肢位摆放 24小时','关节被动活动度训练 每日2次','拍背排痰 预防肺部感染','神经肌肉电刺激(NMES)','预防深静脉血栓']},
+      subacute:{goal:'亚急性期(2-6周) 建立主动运动、抑制异常模式',items:['Bobath技术 抑制痉挛','Brunnstrom分期运动训练','平衡训练(坐-站)','转移训练(床-椅-地)','作业治疗(OT) 上肢功能','吞咽功能训练']},
+      chronic:{goal:'慢性期(6周+) 提高ADL、重返社会',items:['独立步行训练 平地/上下楼','精细动作训练(扣钮/写字)','日常生活活动训练','认知康复训练','言语康复训练','辅助器具适配']}
+    }
+  },
+  {
+    key:'cervical',
+    name:'颈椎病（脊髓型）',
+    desc:'四肢麻木无力、踩棉花感 2 月，颈椎管狭窄',
+    tag:'肌骨',
+    patient:{name:'示例·王女士',gender:'女',age:55,diagnosis:'脊髓型颈椎病',phone:'137****2345',address:'山东省青岛市',note:'长期低头伏案工作，四肢进行性麻木无力'},
+    assessment:{
+      chiefComplaint:{symptoms:'四肢麻木无力 踩棉花感',onset:'2月前',triggers:'无明显诱因',history:'颈椎MRI：C3-7椎间盘后突伴椎管狭窄，脊髓受压'},
+      palpation:{sites:['颈椎','肩胛骨','胸椎'],painLevel:4,findings:'颈椎棘突压痛，双侧肩胛提肌紧张，Hoffmann征(+)'},
+      rom:[{joint:'颈椎',active:'旋转受限 30° 屈伸受限',passive:'被动活动受限，诱发上肢麻木'},{joint:'肩',active:'前屈150° 外展140°',passive:'基本正常'},{joint:'肘',active:'正常',passive:'正常'},{joint:'腕',active:'正常',passive:'正常'}],
+      muscle:[{group:'三角肌',grade:4,note:''},{group:'肱二头肌',grade:4,note:''},{group:'肱三头肌',grade:4,note:'右侧稍弱'},{group:'腕伸肌',grade:4,note:''},{group:'屈颈肌',grade:4,note:''}],
+      skinTemp:{left:'36.5',right:'36.5'},
+      adl:{items:{'穿衣':4,'进食':4,'如厕':4,'洗澡':3,'行走':3,'上下楼':2,'购物':2,'做饭':3,'洗衣':3,'服药':5}}
+    },
+    scales:[
+      {key:'VAS',name:'VAS疼痛评分',score:4,conclusion:'中度疼痛（4-6）',data:{value:4},date:Date.now()},
+      {key:'NDI',name:'NDI颈椎功能障碍指数',score:32,conclusion:'中度功能障碍(20-40%)',data:{pain:6,care:4,lift:4,read:5,headache:4,attention:4,work:5,drive:4,sleep:5,recreation:4},date:Date.now()},
+      {key:'JOAC',name:'JOA颈椎评分',score:11,conclusion:'11-16 轻度损害',data:{upperMotor:3,lowerMotor:3,sensory:4,bladder:1},date:Date.now()}
+    ],
+    plan:{
+      acute:{goal:'急性期(0-2周) 减轻脊髓水肿、缓解症状',items:['颈部制动(颈托保护)','大剂量类固醇冲击治疗(术前)','神经营养药物','高压氧治疗']},
+      subacute:{goal:'术后/亚急性期(2-6周) 恢复神经功能',items:['颈椎稳定性训练','神经根牵伸训练','上肢神经松动术','平衡与协调训练','肌电生物反馈']},
+      chronic:{goal:'慢性期(6周+) 重建功能、防止复发',items:['颈椎核心稳定训练','姿势矫正训练','全身协调性运动','回归工作模拟训练','定期复查MRI']}
+    }
+  },
+  {
+    key:'tka',
+    name:'全膝关节置换术后',
+    desc:'左TKA术后 6 周，关节活动度恢复中',
+    tag:'肌骨',
+    patient:{name:'示例·赵先生',gender:'男',age:68,diagnosis:'左膝关节置换术后(TKA)',phone:'136****3456',address:'山东省烟台市',note:'左膝重度骨关节炎，TKA术后6周'},
+    assessment:{
+      chiefComplaint:{symptoms:'左膝关节术后疼痛、活动受限',onset:'6周前',triggers:'术后',history:'左膝关节重度骨性关节炎，2024年10月行TKA手术'},
+      palpation:{sites:['膝关节'],painLevel:3,findings:'左膝手术切口愈合良好，髌上囊轻度肿胀，McMurray试验(-)，Lachman试验(-)'},
+      rom:[{joint:'左膝',active:'伸0° 屈95°',passive:'伸0° 屈110°'},{joint:'左髋',active:'屈100° 外展40°',passive:'基本正常'},{joint:'左踝',active:'正常',passive:'正常'},{joint:'右膝',active:'正常',passive:'正常'}],
+      muscle:[{group:'股四头肌',grade:4,note:'左侧股四头肌稍萎缩，需加强'},{group:'腘绳肌',grade:5,note:''},{group:'胫前肌',grade:5,note:''},{group:'小腿三头肌',grade:5,note:''}],
+      skinTemp:{left:'36.7',right:'36.5'},
+      adl:{items:{'穿衣':5,'进食':5,'如厕':4,'洗澡':3,'行走':3,'上下楼':2,'购物':2,'做饭':3,'洗衣':3,'服药':5}}
+    },
+    scales:[
+      {key:'VAS',name:'VAS疼痛评分',score:3,conclusion:'轻度疼痛（0-3）',data:{value:3},date:Date.now()},
+      {key:'Lysholm',name:'Lysholm膝关节评分',score:72,conclusion:'65-83 中等恢复',data:{pain:25,swelling:5,instability:15,locking:15,painRun:0,climbStairs:5,squat:5,limp:5,support:5},date:Date.now()},
+      {key:'Oxford',name:'Oxford膝关节评分',score:35,conclusion:'>29 较差，需继续康复',data:{pain:18,function:17},date:Date.now()}
+    ],
+    plan:{
+      acute:{goal:'术后早期(0-2周) 控制肿胀、恢复伸直',items:['抬高患肢 消肿','冰敷 每日3次 每次20分钟','踝泵训练 每小时10次','股四头肌等长收缩练习','CPM 30-60°']},
+      subacute:{goal:'术后中期(2-6周) 改善ROM、增强肌力',items:['膝关节屈伸训练 达120°','直腿抬高训练 3组×15次','平衡板训练','步态训练(助行器)','物理因子治疗']},
+      chronic:{goal:'术后后期(6周+) 重返日常、恢复运动',items:['渐进性抗阻训练','功能性训练(上下楼/蹲起)','本体感觉训练','重返运动(游泳/骑车)','工作能力评估']}
+    }
+  },
+  {
+    key:'frozen_shoulder',
+    name:'肩周炎（冻结肩）',
+    desc:'右肩关节疼痛活动受限 3 月，冻结期',
+    tag:'肌骨',
+    patient:{name:'示例·孙女士',gender:'女',age:52,diagnosis:'右肩关节周围炎(冻结期)',phone:'135****4567',address:'山东省潍坊市',note:'无明显外伤，肩部进行性疼痛伴活动受限'},
+    assessment:{
+      chiefComplaint:{symptoms:'右肩关节疼痛夜间加重 活动受限',onset:'3月前',triggers:'无明显诱因',history:'右肩X线未见骨性异常。MRI：肩关节囊增厚，滑囊炎'},
+      palpation:{sites:['肩关节','肩胛骨'],painLevel:8,findings:'右肩三角肌萎缩，冈上肌肌腱走行区压痛(+)，Neer征(+)，Hawkins征(+)'},
+      rom:[{joint:'右肩',active:'前屈60° 外展60° 外旋10° 内旋(-30°)',passive:'被动活动明显受限，疼痛弧征(+)'},{joint:'右肘',active:'正常',passive:'正常'},{joint:'颈椎',active:'正常',passive:'正常'}],
+      muscle:[{group:'三角肌',grade:3,note:'右侧三角肌萎缩，肌力下降'},{group:'冈上肌',grade:3,note:'冈上肌肌力减弱'},{group:'肱二头肌',grade:5,note:''},{group:'肱三头肌',grade:5,note:''}],
+      skinTemp:{left:'36.5',right:'36.4'},
+      adl:{items:{'穿衣':2,'进食':4,'如厕':4,'洗澡':2,'行走':5,'上下楼':4,'购物':3,'做饭':3,'洗衣':2,'服药':5}}
+    },
+    scales:[
+      {key:'VAS',name:'VAS疼痛评分',score:8,conclusion:'重度疼痛（7-10）',data:{value:8},date:Date.now()},
+      {key:'Constant',name:'Constant肩关节评分',score:42,conclusion:'<70 差，需积极康复',data:{pain:5,ADL:10,ROM:15,strength:12},date:Date.now()},
+      {key:'DASH',name:'DASH上肢功能障碍',score:68,conclusion:'>30 显著障碍',data:{score:68},date:Date.now()}
+    ],
+    plan:{
+      acute:{goal:'冻结期(疼痛期 0-3月) 消炎止痛、物理因子',items:['口服NSAID消炎镇痛','物理因子治疗(超声波/短波)','皮质类固醇关节腔注射','麻醉下手法松解(必要时)']},
+      subacute:{goal:'僵硬期(3-6月) 松解粘连、恢复ROM',items:['关节松动术(Maitland III-IV级)','被动牵拉训练(外展/外旋)','滑轮训练 每日3组×15次','自我牵伸(爬墙运动)','肌筋膜放松']},
+      chronic:{goal:'恢复期(6-12月) 增强肌力、恢复功能',items:['冈上肌/三角肌等长训练','渐进性抗阻训练','功能性训练(梳头/穿胸罩)','运动回归训练','姿势矫正']}
+    }
+  }
+];
+
+/* 加载示例患者：将模板写入 localStorage，返回新患者 ID 数组 */
+function loadPatientTemplates(templateKey, overwrite){
+  var tpl=PATIENT_TEMPLATES.find(function(t){return t.key===templateKey});
+  if(!tpl){toast('未找到模板：'+templateKey);return null}
+  var ts=Date.now();
+  var newPid='tpl-'+uid();
+  // 1. 创建患者
+  var baseP=tpl.patient;
+  var newPatient={
+    id:newPid,
+    patientId:'TPL-'+templateKey.toUpperCase()+'-'+String(ts).slice(-6),
+    name:baseP.name,gender:baseP.gender,age:baseP.age,
+    diagnosis:baseP.diagnosis,phone:baseP.phone,address:baseP.address,note:(baseP.note||'')+' [示例模板-'+tpl.name+']',
+    createdAt:ts
+  };
+  var ap=getActiveProfile();
+  if(ap)newPatient.createdBy=ap.id;
+  // 若名称已有同名示例则加序号
+  var existing=getPatients();
+  var sameName=existing.filter(function(p){return p.name===newPatient.name}).length;
+  if(sameName>0)newPatient.name=newPatient.name+'('+(sameName+1)+')';
+  var pats=existing.concat([newPatient]);
+  if(!setPatients(pats)){toast('⚠️ 保存失败：存储空间不足');return null}
+  // 2. 评估
+  if(tpl.assessment){
+    var a=getAssessments();
+    a[newPid]=JSON.parse(JSON.stringify(tpl.assessment));
+    a[newPid].updatedAt=ts;
+    setAssessments(a);
+  }
+  // 3. 量表
+  if(tpl.scales&&tpl.scales.length){
+    var s=getScales();
+    s[newPid]=tpl.scales.map(function(sc){var c=JSON.parse(JSON.stringify(sc));c.date=ts;return c});
+    setScales(s);
+  }
+  // 4. 方案
+  if(tpl.plan){
+    var p=getPlans();
+    var pl=JSON.parse(JSON.stringify(tpl.plan));
+    pl.createdAt=ts;pl.updatedAt=ts;
+    p[newPid]=pl;
+    setPlans(p);
+  }
+  audit('patient.template.load',{key:templateKey,name:newPatient.name,template:tpl.name});
+  return newPatient;
+}
+/* 一键加载全部示例患者，返回最后一个患者 ID（字符串） */
+function loadAllPatientTemplates(){
+  var count=0;var lastPid=null;
+  PATIENT_TEMPLATES.forEach(function(t){
+    var r=loadPatientTemplates(t.key);
+    if(r){count++;lastPid=r}
+  });
+  toast('已加载 '+count+' 位示例患者');
+  return lastPid;
+}
+
 /* ========================= Utils ========================= */

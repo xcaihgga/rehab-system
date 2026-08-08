@@ -231,6 +231,17 @@ a{text-decoration:none;color:inherit}
 .tag.warn{background:#feebc8;color:#c05621}
 .tag.ok{background:#bee3f8;color:#2c5282}
 
+/* 示例患者模板卡片 */
+.tpl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-top:8px}
+.tpl-item{border:1px solid #e2e8f0;border-radius:8px;padding:12px;cursor:pointer;background:#f7fafc;transition:all .2s;position:relative}
+.tpl-item:hover{background:#ebf8ff;border-color:var(--primary);box-shadow:0 2px 8px rgba(49,130,206,.15);transform:translateY(-1px)}
+.tpl-tag{position:absolute;top:8px;right:8px;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600}
+.tpl-tag.tag-msk{background:#bee3f8;color:#2c5282}
+.tpl-tag.tag-neuro{background:#fbd38d;color:#c05621}
+.tpl-name{font-weight:600;font-size:13px;color:#2d3748;margin-top:4px;padding-right:50px}
+.tpl-desc{font-size:11px;color:#718096;margin-top:4px;line-height:1.4}
+.tpl-act{font-size:11px;color:var(--primary);font-weight:600;margin-top:8px;text-align:right}
+
 /* scale card */
 .scale-card{border:1px solid #edf2f7;border-radius:8px;padding:12px;margin-bottom:10px;background:#fff}
 .scale-card .sc-name{font-weight:600;font-size:14px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}

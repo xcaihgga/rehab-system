@@ -297,12 +297,77 @@ routes['/patients']=function(param,query){
     });
     list+='</div>';
   }
+  // 模板列表 HTML
+  var tplHtml='';
+  PATIENT_TEMPLATES.forEach(function(t){
+    tplHtml+='<div class="tpl-item" data-tpl="'+t.key+'">'+
+      '<div class="tpl-tag tag-'+(t.tag==='神经'?'neuro':'msk')+'">'+escapeHtml(t.tag)+'</div>'+
+      '<div class="tpl-name">'+escapeHtml(t.name)+'</div>'+
+      '<div class="tpl-desc">'+escapeHtml(t.desc)+'</div>'+
+      '<div class="tpl-act">载入示例 →</div>'+
+    '</div>';
+  });
   app.innerHTML='<div class="page"><div class="page-header"><h2>患者管理</h2><p>共 '+patients.length+' 位患者 '+roleBadge+'</p></div>'+
     '<div class="search-box"><span class="ic">🔍</span><input id="pat_search" placeholder="按姓名或患者ID搜索"></div>'+
     '<div class="card" style="padding:10px;margin-bottom:10px"><div style="font-size:13px;font-weight:600;margin-bottom:6px">📋 按患者ID直接加载</div><div style="display:flex;gap:8px"><input id="pat_id_input" placeholder="输入患者ID（如P-20250731-1234）" style="flex:1;padding:8px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px"><button class="btn" id="pat_id_load" style="white-space:nowrap">加载</button></div></div>'+
+    '<div class="card" style="margin-bottom:10px;border-left:4px solid var(--primary)"><div class="card-title">🎓 示例患者模板 <span style="font-size:12px;color:#888;font-weight:normal">一键载入完整评估数据（主诉/触诊/ROM/肌力/量表/康复方案）</span></div>'+
+      '<div class="tpl-grid" id="tpl_grid">'+tplHtml+'</div>'+
+      '<div style="display:flex;gap:8px;margin-top:8px"><button class="btn btn-ghost" id="tpl_load_all" style="flex:1">📥 一键加载全部 5 位示例患者</button><button class="btn btn-ghost" id="tpl_show_only">仅显示示例</button></div>'+
+    '</div>'+
     '<div class="card"><div class="card-title">患者列表 <button class="btn-mini" id="addPatient">+ 新增</button></div>'+list+'</div></div>';
 
   document.getElementById('addPatient').onclick=function(){showPatientForm(null)};
+  // 模板点击：加载单个模板
+  document.querySelectorAll('.tpl-item').forEach(function(el){
+    el.onclick=function(){
+      var key=el.getAttribute('data-tpl');
+      var tpl=PATIENT_TEMPLATES.find(function(t){return t.key===key});
+      confirmDialog('载入示例患者 "'+tpl.name+'"？将创建一位带有完整评估/量表/康复方案的示例患者',function(){
+        var pid=loadPatientTemplates(key);
+        if(pid){
+          // 先跳转换取新列表，再 toast + 高亮
+          route('/patients');
+          setTimeout(function(){
+            toast('已载入：'+tpl.name);
+            var cards=document.querySelectorAll('.patient-card[data-pid="'+pid+'"]');
+            if(cards.length){
+              cards[0].scrollIntoView({behavior:'smooth',block:'center'});
+              cards[0].style.boxShadow='0 0 0 3px var(--primary)';
+              setTimeout(function(){if(cards[0])cards[0].style.boxShadow=''},2000);
+            }
+          },400);
+        }
+      });
+    };
+  });
+  // 一键加载全部
+  var loadAllBtn=document.getElementById('tpl_load_all');
+  if(loadAllBtn)loadAllBtn.onclick=function(){
+    confirmDialog('将一次载入全部 5 位示例患者？可在加载后统一删除',function(){
+      var pid=loadAllPatientTemplates();
+      if(pid){
+        route('/patients');
+      }
+    });
+  };
+  // 仅显示示例筛选
+  var onlyBtn=document.getElementById('tpl_show_only');
+  if(onlyBtn){
+    onlyBtn.onclick=function(){
+      var allCards=document.querySelectorAll('#pat_list .patient-card');
+      if(onlyBtn.textContent.indexOf('仅显示')>=0){
+        allCards.forEach(function(c){
+          var p=getPatient(c.getAttribute('data-pid'));
+          var isTpl=p&&p.patientId&&p.patientId.indexOf('TPL-')===0;
+          c.style.display=isTpl?'':'none';
+        });
+        onlyBtn.textContent='显示全部患者';
+      }else{
+        allCards.forEach(function(c){c.style.display=''});
+        onlyBtn.textContent='仅显示示例';
+      }
+    };
+  }
   // search
   var searchInput=document.getElementById('pat_search');
   if(searchInput){
