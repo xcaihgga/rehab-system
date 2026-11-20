@@ -23294,6 +23294,7 @@ let state = {
   assessFilter: 'all', assessQuery: '',
   filter: 'all', search: '', collapsed: false,
   draft: '', noteAdverse: '', compose: null, noteQuery: '', noteCat: '全部', doctor: '王医师',
+  editingNoteId: '',
   hospital: '', dept: '康复医学科', doctorTitle: '', supervisor: '',
   ddxDraft: '', voiceRec: null,
   viewMode: 'split', collapsedSec: {}, collapsedScale: {}, parseDraft: '',
@@ -23434,7 +23435,7 @@ function snapshotDraft(id) {
   if (!id || !isObj(state.drafts)) return;
   state.drafts[id] = {
     draft: state.draft, noteAdverse: state.noteAdverse, ddxDraft: state.ddxDraft, parseDraft: state.parseDraft,
-    reportDraft: state.reportDraft, reportParsed: state.reportParsed, compose: state.compose
+    reportDraft: state.reportDraft, reportParsed: state.reportParsed, compose: state.compose, editingNoteId: state.editingNoteId
   };
 }
 // 纯回填：把指定患者草稿从桶读入内存，不做快照、不清桶；供切换与启动加载共用
@@ -23448,6 +23449,9 @@ function restoreDraft(id) {
   state.parseDraft = d.parseDraft || '';
   state.compose = d.compose ? clone(d.compose) : defaultCompose(P());
   if (!Array.isArray(state.compose.med)) state.compose.med = [];
+  // 仅在原记录仍存在时恢复编辑态，避免记录被删除后误把草稿另存成新记录
+  const pat = state.patients.find((x) => x.id === id);
+  state.editingNoteId = (pat && Array.isArray(pat.notes) && pat.notes.some((n) => n.id === d.editingNoteId)) ? d.editingNoteId : '';
 }
 // 统一的患者切换入口：切换当前患者并按其病种重建病程生成配置与草稿，避免上一名患者的 compose 残留
 function selectPatient(id) {
@@ -25977,7 +25981,10 @@ function viewCourse(p) {
 
   const typeOpts = [['daily', '日常病程'], ['first', '首次病程'], ['round', '上级查房']];
   const typeLabel = NOTE_TYPE_LABEL[c.noteType] || '日常病程';
-  const composer = '<div class="composer"><h4>' + typeLabel + '记录</h4><div class="csub">' + (c.noteType === 'daily' ? '按今日查房情况选择要点，生成后可自由修改并保存入病历时间线。' : '套用对应骨架初稿，__ 处与评定数据须人工核实补全，不可直接签字归档。') + '</div>' +
+  const editing = state.editingNoteId ? p.notes.find((n) => n.id === state.editingNoteId) : null;
+  const composer = '<div class="composer"><h4>' + (editing ? '编辑' : '') + typeLabel + '记录</h4><div class="csub">' +
+    (editing ? '正在编辑 ' + esc(editing.date) + ' 的' + typeLabel + '记录：保存后替换原记录，取消编辑则原记录保持不变。'
+      : (c.noteType === 'daily' ? '按今日查房情况选择要点，生成后可自由修改并保存入病历时间线。' : '套用对应骨架初稿，__ 处与评定数据须人工核实补全，不可直接签字归档。')) + '</div>' +
     '<div class="compose-grid">' +
       '<div class="gen-row full"><label>记录类型</label><select data-compose="noteType" style="max-width:220px">' + typeOpts.map(([v, l]) => '<option value="' + v + '"' + (c.noteType === v ? ' selected' : '') + '>' + l + '</option>').join('') + '</select></div>' +
       '<div class="gen-row full"><label>病种分类</label><select data-compose="cat" style="max-width:260px">' + cats.map((x) => '<option' + (c.cat === x ? ' selected' : '') + '>' + x + '</option>').join('') + '</select></div>' +
@@ -25997,10 +26004,12 @@ function viewCourse(p) {
       (a ? '<button class="btn small outline" data-action="gen-draft-assess">按本次评估生成</button>' : '') +
       '<span class="count-tip">' + (state.draft ? state.draft.length + ' 字' : '草稿为空') + '</span><span class="spacer"></span>' +
       '<button class="btn small outline" data-action="clear-draft">清空</button>' +
-      '<button class="btn solid small" data-action="submit-note">保存病程</button>' +
+      (editing ? '<button class="btn small outline" data-action="cancel-edit">取消编辑</button>' : '') +
+      '<button class="btn solid small" data-action="submit-note">' + (editing ? '保存修改' : '保存病程') + '</button>' +
     '</div></div>';
 
-  const list = p.notes.slice().sort((x, y) => (dateTs(y.date) - dateTs(x.date)));
+  // 同一天内按写入顺序倒序（后写的在前），避免新记录被稳定排序压到当天最下面
+  const list = p.notes.map((n, i) => ({ n, i })).sort((x, y) => (dateTs(y.n.date) - dateTs(x.n.date)) || (y.i - x.i)).map((x) => x.n);
   const timeline = list.length ? '<div class="timeline">' + list.map((n) =>
     '<div class="tl-item' + (n.date === todayISO() ? ' new' : '') + '"><div class="tl-card"><div class="tl-top"><span class="tl-date">' + esc(n.date) + '</span>' +
     '<span class="tl-type">' + esc(NOTE_TYPE_LABEL[n.type] || '日常病程') + '</span><span class="tl-author">' + esc(n.author || state.doctor) + '</span></div>' +
@@ -27046,7 +27055,7 @@ document.addEventListener('click', (e) => {
       if (!state.draft) return toast('草稿为空');
       state.tab = 'course'; renderTabs(); renderView(); renderAssistant(); goDraft(); break;
     }
-    case 'clear-draft': state.draft = ''; state.noteAdverse = ''; renderView(); renderAssistant(); break;
+    case 'clear-draft': state.draft = ''; state.noteAdverse = ''; state.editingNoteId = ''; scheduleSave(); renderView(); renderAssistant(); break;
     case 'note-skeleton': {
       const type = (state.compose && state.compose.noteType) || 'daily';
       const sk = noteSkeleton(p, type);
@@ -27057,6 +27066,18 @@ document.addEventListener('click', (e) => {
       const text = state.draft.trim();
       if (text.length < 8) return toast('病程内容过短，请补充后再保存');
       const type = (state.compose && NOTE_TYPES.indexOf(state.compose.noteType) >= 0) ? state.compose.noteType : 'daily';
+      const editing = state.editingNoteId ? p.notes.find((n) => n.id === state.editingNoteId) : null;
+      if (editing) {
+        // 编辑保存：原地替换内容与类型，保留原记录日期和保存时的落款
+        editing.text = text;
+        editing.adverse = state.noteAdverse.trim();
+        editing.type = type;
+        state.editingNoteId = '';
+        state.draft = '';
+        state.noteAdverse = '';
+        scheduleSave(); renderAll(); toast('病程已更新');
+        break;
+      }
       const author = type === 'round' ? (state.supervisor || state.doctor) : state.doctor;
       p.notes.push({ id: uid(), date: todayISO(), author, type, text, adverse: state.noteAdverse.trim() });
       state.draft = '';
@@ -27121,7 +27142,11 @@ document.addEventListener('click', (e) => {
       break;
     }
     case 'del-note': {
-      p.notes = p.notes.filter((n) => n.id !== btn.dataset.id);
+      const n = p.notes.find((x) => x.id === btn.dataset.id);
+      if (!n) break;
+      if (!window.confirm('确定删除 ' + n.date + ' 的这条病程记录吗？删除后无法恢复。')) break;
+      p.notes = p.notes.filter((x) => x.id !== btn.dataset.id);
+      if (state.editingNoteId === btn.dataset.id) { state.editingNoteId = ''; state.draft = ''; state.noteAdverse = ''; }
       scheduleSave(); renderAll(); toast('已删除');
       break;
     }
@@ -27132,7 +27157,22 @@ document.addEventListener('click', (e) => {
     }
     case 'edit-note': {
       const n = p.notes.find((x) => x.id === btn.dataset.id);
-      if (n) { state.draft = n.text; state.noteAdverse = n.adverse || ''; state.compose.noteType = NOTE_TYPES.indexOf(n.type) >= 0 ? n.type : 'daily'; p.notes = p.notes.filter((x) => x.id !== n.id); scheduleSave(); renderAll(); goDraft(); }
+      if (n) {
+        // 进入编辑态：原记录保留在时间线，保存时才替换；中途取消/切患者不会丢记录
+        state.editingNoteId = n.id;
+        state.draft = n.text;
+        state.noteAdverse = n.adverse || '';
+        if (!state.compose) state.compose = defaultCompose(p);
+        state.compose.noteType = NOTE_TYPES.indexOf(n.type) >= 0 ? n.type : 'daily';
+        scheduleSave(); renderAll(); goDraft();
+      }
+      break;
+    }
+    case 'cancel-edit': {
+      state.editingNoteId = '';
+      state.draft = '';
+      state.noteAdverse = '';
+      scheduleSave(); renderAll(); toast('已取消编辑，原记录未改动');
       break;
     }
     case 'gen-discharge': {
