@@ -23294,7 +23294,7 @@ let state = {
   assessFilter: 'all', assessQuery: '',
   filter: 'all', search: '', collapsed: false,
   draft: '', noteAdverse: '', compose: null, noteQuery: '', noteCat: '全部', doctor: '王医师',
-  editingNoteId: '',
+  editingNoteId: '', pendingDeleteId: '',
   hospital: '', dept: '康复医学科', doctorTitle: '', supervisor: '',
   ddxDraft: '', voiceRec: null,
   viewMode: 'split', collapsedSec: {}, collapsedScale: {}, parseDraft: '',
@@ -23458,6 +23458,7 @@ function selectPatient(id) {
   snapshotDraft();   // 切换前先把当前患者草稿落回其草稿桶
   const exists = state.patients.some((p) => p.id === id);
   state.currentId = exists ? id : (state.patients[0] && state.patients[0].id);
+  state.pendingDeleteId = '';   // 换患者时清掉未完成的删除确认
   restoreDraft(state.currentId);
   renderAll(false);
 }
@@ -26010,13 +26011,18 @@ function viewCourse(p) {
 
   // 同一天内按写入顺序倒序（后写的在前），避免新记录被稳定排序压到当天最下面
   const list = p.notes.map((n, i) => ({ n, i })).sort((x, y) => (dateTs(y.n.date) - dateTs(x.n.date)) || (y.i - x.i)).map((x) => x.n);
-  const timeline = list.length ? '<div class="timeline">' + list.map((n) =>
-    '<div class="tl-item' + (n.date === todayISO() ? ' new' : '') + '"><div class="tl-card"><div class="tl-top"><span class="tl-date">' + esc(n.date) + '</span>' +
-    '<span class="tl-type">' + esc(NOTE_TYPE_LABEL[n.type] || '日常病程') + '</span><span class="tl-author">' + esc(n.author || state.doctor) + '</span></div>' +
-    '<div class="tl-body">' + esc(n.text) + '</div>' +
-    ((n.adverse || '').trim() ? '<div class="tl-adverse">不良事件：' + esc(n.adverse) + '</div>' : '') +
-    '<div class="tl-actions"><button data-action="edit-note" data-id="' + n.id + '">编辑</button><button data-action="copy-note" data-id="' + n.id + '">复制</button>' +
-    '<button data-action="del-note" data-id="' + n.id + '">删除</button></div></div></div>').join('') + '</div>'
+  const timeline = list.length ? '<div class="timeline">' + list.map((n) => {
+    const pending = state.pendingDeleteId === n.id;
+    return '<div class="tl-item' + (n.date === todayISO() ? ' new' : '') + '"><div class="tl-card"><div class="tl-top"><span class="tl-date">' + esc(n.date) + '</span>' +
+      '<span class="tl-type">' + esc(NOTE_TYPE_LABEL[n.type] || '日常病程') + '</span><span class="tl-author">' + esc(n.author || state.doctor) + '</span></div>' +
+      '<div class="tl-body">' + esc(n.text) + '</div>' +
+      ((n.adverse || '').trim() ? '<div class="tl-adverse">不良事件：' + esc(n.adverse) + '</div>' : '') +
+      '<div class="tl-actions"' + (pending ? ' style="opacity:1"' : '') + '><button data-action="edit-note" data-id="' + n.id + '">编辑</button><button data-action="copy-note" data-id="' + n.id + '">复制</button>' +
+      (pending
+        ? '<button data-action="del-note" data-id="' + n.id + '" style="color:var(--accent);font-weight:600">确认删除</button><button data-action="cancel-del">取消</button>'
+        : '<button data-action="del-note" data-id="' + n.id + '">删除</button>') +
+      '</div></div></div>';
+  }).join('') + '</div>'
     : '<div class="blank">尚无病程记录。用上方生成器、日程模板或右侧语句库快速书写第一条。</div>';
 
   const ddx = p.record.diffDx || {};
@@ -27142,12 +27148,25 @@ document.addEventListener('click', (e) => {
       break;
     }
     case 'del-note': {
-      const n = p.notes.find((x) => x.id === btn.dataset.id);
+      const id = btn.dataset.id;
+      const n = p.notes.find((x) => x.id === id);
       if (!n) break;
-      if (!window.confirm('确定删除 ' + n.date + ' 的这条病程记录吗？删除后无法恢复。')) break;
-      p.notes = p.notes.filter((x) => x.id !== btn.dataset.id);
-      if (state.editingNoteId === btn.dataset.id) { state.editingNoteId = ''; state.draft = ''; state.noteAdverse = ''; }
+      // 页面内二次确认：第一次点只切换为「确认删除」，避免原生 confirm 被内嵌预览拦截
+      if (state.pendingDeleteId !== id) {
+        state.pendingDeleteId = id;
+        renderView();
+        toast('再点一次「确认删除」才会删除，点「取消」可放弃');
+        break;
+      }
+      state.pendingDeleteId = '';
+      p.notes = p.notes.filter((x) => x.id !== id);
+      if (state.editingNoteId === id) { state.editingNoteId = ''; state.draft = ''; state.noteAdverse = ''; }
       scheduleSave(); renderAll(); toast('已删除');
+      break;
+    }
+    case 'cancel-del': {
+      state.pendingDeleteId = '';
+      renderView();
       break;
     }
     case 'copy-note': {
@@ -27159,6 +27178,7 @@ document.addEventListener('click', (e) => {
       const n = p.notes.find((x) => x.id === btn.dataset.id);
       if (n) {
         // 进入编辑态：原记录保留在时间线，保存时才替换；中途取消/切患者不会丢记录
+        state.pendingDeleteId = '';
         state.editingNoteId = n.id;
         state.draft = n.text;
         state.noteAdverse = n.adverse || '';
