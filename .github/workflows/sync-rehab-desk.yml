@@ -18,6 +18,7 @@ jobs:
     steps:
       - name: Download site package
         run: |
+          set -eux
           curl -fSL --max-time 120 -o site.zip "https://aka.doubaocdn.com/s/C0VfrBPWmt"
           ls -l site.zip
           rm -rf _site _tmp
@@ -28,14 +29,15 @@ jobs:
 
       - name: Publish into gh-pages/rehab-desk
         run: |
+          set -eux
           git config --global user.name "rehab-desk-bot"
           git config --global user.email "xcaihgga@users.noreply.github.com"
-          git fetch origin gh-pages
-          rm -rf /tmp/gp && mkdir -p /tmp/gp
-          git worktree add --detach /tmp/gp origin/gh-pages
+          git fetch origin "gh-pages:refs/remotes/origin/gh-pages"
+          rm -rf /tmp/gp
+          git worktree add --detach /tmp/gp refs/remotes/origin/gh-pages
           rm -rf /tmp/gp/rehab-desk
           cp -r _site /tmp/gp/rehab-desk
           cd /tmp/gp
           git add -A rehab-desk
-          git commit -m "sync: 康复病历工作台 PWA" || echo "no change"
+          git -c user.name=rehab-desk-bot -c user.email=xcaihgga@users.noreply.github.com commit -m "sync: 康复病历工作台 PWA" || true
           git push origin HEAD:gh-pages
